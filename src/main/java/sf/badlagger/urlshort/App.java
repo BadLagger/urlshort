@@ -6,6 +6,9 @@ import sf.badlagger.urlshort.UsersDump.User;
 
 public class App 
 {
+	
+	static final int USER_ID_LENGTH = 15;
+	
     public static void main( String[] args )
     {
     	Args arguments = new Args();
@@ -28,6 +31,7 @@ public class App
     	System.out.format("URL LiveTime from config: %d\n", cfg.getLivetime());
     	
     	UsersDump users = new UsersDump("users.list");
+    	User user = null;
     	
     	if ((arguments.usersPath == null) || !users.setFilePath(arguments.usersPath)) {
     		if (!users.setDefault()) {
@@ -39,7 +43,7 @@ public class App
     	System.out.format("Users number: %d\n", users.getUsersNumber());
     	
     	if ((arguments.id != null)) {
-    		User user = users.getUser(arguments.id);
+    		user = users.getUser(arguments.id);
     		if (user == null) {
     			if (users.addNewUser(arguments.id)) {
     				System.out.println("New user was successfully added");
@@ -51,7 +55,26 @@ public class App
     				return;
     			}
     		}
-    		System.out.format("User ID: %s was added at %s hash: %X\n", user.getId(), user.getPrettyDate("dd/MM/yyyy HH:mm:ss"), user.hashCode());
+    	} else {
+    		System.out.println("Generate new User Id");
+    		System.out.println("The power of the User Id set is: " + Generator.getUuidsNumber(USER_ID_LENGTH));
+    		do {
+    			String newId = Generator.getUuid(USER_ID_LENGTH);
+    			user = users.getUser(newId);
+    			if (user != null) {
+    				user = null;
+    				continue;
+    			} else {
+    				if (!users.addNewUser(newId)) {
+    					System.out.format("User with id %s already exists! Re-generate\n", newId);
+    					continue;
+    				}
+    				System.out.println("New user was successfully generated");
+    				user = users.getUser(newId);
+    			}
+    		} while (user == null);
     	}
+    	
+    	System.out.format("User ID: %s was added at %s hash: %X\n", user.getId(), user.getPrettyDate("dd/MM/yyyy HH:mm:ss"), user.hashCode());
     }
 }

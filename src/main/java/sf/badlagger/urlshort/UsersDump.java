@@ -37,6 +37,17 @@ public class UsersDump extends FileDump {
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
 			return simpleDateFormat.format(date.getTime());
 		}
+		
+		@Override
+		public int hashCode() {
+			int ret = 0;
+			
+			for (int i = 0; i < id.length(); ++i) {
+				ret += id.charAt(i);
+			}
+			
+			return (ret + (int)date.getTimeInMillis());
+		}
 	}
 	
 	JsonNode rootNode = null;
