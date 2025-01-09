@@ -15,6 +15,8 @@ public class Args {
 	private final String HELP_DESCRIPTION = "Show this message and exit (even if another arguments are presented)";
 	private final String CFG_NAME = "-cfg";
 	private final String CFG_DESCRIPTION = "Set path to the config file. If it isn't set or  file isn't exist than it will be created in application folder with name sets.cfg";
+	private final String SHORT_NAME = "-short";
+	private final String SHORT_DESCRIPTION = "Set path to the shorl URLs. If it isn't set or  file isn't exist than it will be created in application folder with name short.cfg";
 	
 	private final String[][] optionsList = {
 			{CFG_NAME, CFG_DESCRIPTION},
@@ -23,6 +25,7 @@ public class Args {
 			{HELP_NAME, HELP_DESCRIPTION},
 			{URL_NAME, URL_DESCRIPTION},
 			{USERS_NAME, USERS_DESCRIPTION},
+			{SHORT_NAME, SHORT_DESCRIPTION},
 	};
 	
 	@Parameter(names = ID_NAME, description = ID_DESCRIPTION)
@@ -39,6 +42,9 @@ public class Args {
 	
 	@Parameter(names = CFG_NAME, description = CFG_DESCRIPTION)
 	public String cfgPath = null;
+	
+	@Parameter(names = SHORT_NAME, description = SHORT_DESCRIPTION)
+	public String shortPath = null;
 	
 	@Parameter(names = HELP_NAME, description = HELP_DESCRIPTION)
 	public boolean help;
