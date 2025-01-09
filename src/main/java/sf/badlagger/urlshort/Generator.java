@@ -9,7 +9,7 @@ public class Generator {
 	
 	public static String getUuid(int length) {
 		
-		String ret = null;
+		String ret = "";
 		
 		for (int i = 0; i < length; ++i) {
 			ret += ALPHABETH.charAt(rndm.nextInt(ALPHABETH.length()));

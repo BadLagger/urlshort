@@ -2,8 +2,6 @@ package sf.badlagger.urlshort;
 
 import com.beust.jcommander.JCommander;
 
-import sf.badlagger.urlshort.UsersDump.User;
-
 public class App 
 {
 	
@@ -30,8 +28,8 @@ public class App
     	System.out.format("URL Prefix from config: %s\n", cfg.getPrefix());
     	System.out.format("URL LiveTime from config: %d\n", cfg.getLivetime());
     	
-    	UsersDump users = new UsersDump("users.list");
-    	User user = null;
+    	JsonSimpleDump users = new JsonSimpleDump("users.list");
+    	StringWithDate user = null;
     	
     	if ((arguments.usersPath == null) || !users.setFilePath(arguments.usersPath)) {
     		if (!users.setDefault()) {
@@ -40,16 +38,16 @@ public class App
     		}
     	}
     	
-    	System.out.format("Users number: %d\n", users.getUsersNumber());
+    	System.out.format("Users number: %d\n", users.getValsNumber());
     	
     	if ((arguments.id != null)) {
-    		user = users.getUser(arguments.id);
+    		user = users.getVal(arguments.id);
     		if (user == null) {
-    			if (users.addNewUser(arguments.id)) {
+    			if (users.addNewVal(arguments.id)) {
     				System.out.println("New user was successfully added");
     			}
     			
-    			user = users.getUser(arguments.id);
+    			user = users.getVal(arguments.id);
     			if (user == null) {
     				System.out.println("New user lost!!!");
     				return;
@@ -60,21 +58,23 @@ public class App
     		System.out.println("The power of the User Id set is: " + Generator.getUuidsNumber(USER_ID_LENGTH));
     		do {
     			String newId = Generator.getUuid(USER_ID_LENGTH);
-    			user = users.getUser(newId);
+    			user = users.getVal(newId);
     			if (user != null) {
     				user = null;
     				continue;
     			} else {
-    				if (!users.addNewUser(newId)) {
+    				if (!users.addNewVal(newId)) {
     					System.out.format("User with id %s already exists! Re-generate\n", newId);
     					continue;
     				}
     				System.out.println("New user was successfully generated");
-    				user = users.getUser(newId);
+    				user = users.getVal(newId);
     			}
     		} while (user == null);
     	}
     	
-    	System.out.format("User ID: %s was added at %s hash: %X\n", user.getId(), user.getPrettyDate("dd/MM/yyyy HH:mm:ss"), user.hashCode());
+    	System.out.format("User ID: %s was added at %s hash: %X\n", user.getVal(), user.getPrettyDate("dd/MM/yyyy HH:mm:ss"), user.hashCode());
+    	
+    	users.removeVal("12345687");
     }
 }

@@ -1,7 +1,8 @@
 package sf.badlagger.urlshort;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -9,56 +10,26 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class UsersDump extends FileDump {
-
-	public class User {
-		private String id = null;
-		private Calendar date = null;
-		
-		public User(String id, Calendar date) {
-			this.id = id;
-			this.date = date;
-		}
-		
-		public User(String id) {
-			this.id = id;
-			this.date = Calendar.getInstance();
-		}
-		
-		public String getId() {
-			return id;
-		}
-		
-		public Calendar getDate() {
-			return date;
-		}
-		
-		public String getPrettyDate(String format) {
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
-			return simpleDateFormat.format(date.getTime());
-		}
-		
-		@Override
-		public int hashCode() {
-			int ret = 0;
-			
-			for (int i = 0; i < id.length(); ++i) {
-				ret += id.charAt(i);
-			}
-			
-			return (ret + (int)date.getTimeInMillis());
-		}
-	}
+public class JsonSimpleDump extends FileDump {
 	
 	JsonNode rootNode = null;
+	Map<Integer, StringWithDate> valMap = new HashMap<>();
 	
-	protected UsersDump(String defaultName) {
+	protected JsonSimpleDump(String defaultName) {
 		super(defaultName);
 	}
 	
 	private boolean loadDataToJson() {
 		try {
 			rootNode = new ObjectMapper().readTree(dataString);
+			var keys = rootNode.fieldNames();
+			Calendar date = Calendar.getInstance();
+			while(keys.hasNext()) {
+				String key = keys.next();
+				date.setTimeInMillis(rootNode.get(key).asLong());
+				StringWithDate checkValue = new StringWithDate(key, date);
+				valMap.put(checkValue.hashCode(), checkValue);
+			}
 			return true;
 		} catch (JsonMappingException e) {
 			e.printStackTrace();
@@ -88,7 +59,7 @@ public class UsersDump extends FileDump {
 		return false;
 	}
 	
-	public boolean checkUser(String id) {
+	public boolean checkVal(String id) {
 		
 		if (rootNode == null)
 			return false;
@@ -99,7 +70,11 @@ public class UsersDump extends FileDump {
 		return true;
 	}
 	
-	public User getUser(String id) {
+	public StringWithDate getVal(int hash) {
+		return valMap.get(hash);
+	}
+	
+	public StringWithDate getVal(String id) {
 		
 		if (rootNode == null)
 			return null;
@@ -118,23 +93,32 @@ public class UsersDump extends FileDump {
 		Calendar date = Calendar.getInstance();
 		date.setTimeInMillis(dateMs);
 		
-		return new User(id, date);
+		return new StringWithDate(id, date);
 	}
 	
-	public int getUsersNumber() {
+	public int getValsNumber() {
 		return (rootNode != null) ? rootNode.size() : 0;
 	}
 	
-	public boolean addNewUser(String id) {
+	public boolean isHashPresent(StringWithDate value) {
+		return valMap.containsKey(value.hashCode());
+	}
+	
+	public boolean addNewVal(String id) {
 		
 		if (rootNode == null)
 			return false;
 		
-		if (!checkUser(id)) {
-			User user = new User(id);
-			((ObjectNode)rootNode).put(user.getId(), user.getDate().getTime().getTime());
+		if (!checkVal(id)) {
+			StringWithDate value = new StringWithDate(id);
+			
+			if (isHashPresent(value))
+				return false;
+			
+			((ObjectNode)rootNode).put(value.getVal(), value.getDate().getTime().getTime());
 			try {
 				dataString =  (new ObjectMapper()).writeValueAsString(rootNode);
+				valMap.put(value.hashCode(), value);
 			} catch (JsonProcessingException e) {
 				e.printStackTrace();
 				return false;
@@ -143,6 +127,21 @@ public class UsersDump extends FileDump {
 			return save();
 		}
 		
+		return false;
+	}
+	
+	public boolean removeVal(String id) {
+		if (checkVal(id)) {
+			valMap.remove(getVal(id).hashCode());
+			((ObjectNode)rootNode).remove(id);
+			try {
+				dataString =  (new ObjectMapper()).writeValueAsString(rootNode);
+			} catch (JsonProcessingException e) {
+				e.printStackTrace();
+				return false;
+			}
+			return save();
+		}
 		return false;
 	}
 }
