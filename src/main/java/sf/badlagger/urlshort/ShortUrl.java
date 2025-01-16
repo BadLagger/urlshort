@@ -12,6 +12,6 @@ public class ShortUrl {
     
     
     String getStringJson() {
-	return String.format("{ %d : %d }", urlHash, count);
+	return String.format("{ \"%d\" : %d }", urlHash, count);
     }
 }
