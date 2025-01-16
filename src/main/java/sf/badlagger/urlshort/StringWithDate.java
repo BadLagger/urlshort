@@ -33,7 +33,6 @@ public class StringWithDate {
 		System.out.format("Ссылка годна до: %s\n", simpleDateFormat.format(bestBefore.getTime()));
 		System.out.format("Сейчас: %s\n", simpleDateFormat.format(now.getTime()));
 		int result = bestBefore.compareTo(now);
-		System.out.format("Результат сравнения: %d\n", result);
 		if (result > 0) {
 			return true;
 		}

@@ -201,6 +201,12 @@ public class App {
 			case ADD_NEW_URL:
 				String newUrl = ui.getURL();
 				if (newUrl != null) {
+					int   limitURL = ui.getURLCount();
+					if (limitURL <= 0) {
+						System.out.println("Неправильное число переходов!!!");
+						break;
+					}
+					
 					longUrls.addNewVal(newUrl);
 					StringWithDate url = longUrls.getVal(newUrl);
 					if (!user.isLongUrlPresent(url.hashCode())) {
@@ -208,7 +214,8 @@ public class App {
 						do {
 							newShortUrl = Generator.getUuid(SHORT_URL_LENGTH);
 						} while (!shortUrls.addNewVal(newShortUrl));
-						ShortUrl shortUrl = new ShortUrl(shortUrls.getVal(newShortUrl).hashCode(), 3);
+						
+						ShortUrl shortUrl = new ShortUrl(shortUrls.getVal(newShortUrl).hashCode(), limitURL);
 						user.addNewUrl(url.hashCode(), shortUrl);
 						System.out.println(user.getJsonStr());
 						if (db.get(user.hashCode()) == null)

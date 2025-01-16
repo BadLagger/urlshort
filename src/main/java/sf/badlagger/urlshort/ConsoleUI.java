@@ -101,4 +101,16 @@ public class ConsoleUI {
             return null;
         }
     }
+    
+    int getURLCount() {
+    	System.out.print("Введите лимит переходов: ");
+    	String input = userInput.next();
+    	
+    	try {
+            return Integer.parseInt(input);
+        } catch (Exception e) {
+            System.out.println("Неверное количество переходов!");
+            return 0;
+        }
+    }
 }
