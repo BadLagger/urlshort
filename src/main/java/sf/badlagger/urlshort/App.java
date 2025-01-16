@@ -2,6 +2,8 @@ package sf.badlagger.urlshort;
 
 import com.beust.jcommander.JCommander;
 
+import sf.badlagger.urlshort.ConsoleUI.Action;
+
 public class App {
 
     static final int USER_ID_LENGTH = 15;
@@ -9,8 +11,10 @@ public class App {
     static Args arguments = null;
     static CfgDump cfg = null;
     static JsonSimpleDump users = null;
-    static StringWithDate user = null;
+    static StringWithDate userId = null;
     static JsonSimpleDump longUrls = null;
+    static JsonSimpleDump shortUrls = null;
+    static ConsoleUI ui;
     
     private static boolean loadCfg(String cfgDefaultFile) {
 	cfg = new CfgDump(cfgDefaultFile);
@@ -44,14 +48,14 @@ public class App {
     private static boolean initUser() {
 	
 	if ((arguments.id != null)) {
-	    user = users.getVal(arguments.id);
-	    if (user == null) {
+	    userId = users.getVal(arguments.id);
+	    if (userId == null) {
 		if (users.addNewVal(arguments.id)) {
 		    System.out.println("New user was successfully added");
 		}
 
-		user = users.getVal(arguments.id);
-		if (user == null) {
+		userId = users.getVal(arguments.id);
+		if (userId == null) {
 		    System.out.println("New user lost!!!");
 		    return false;
 		}
@@ -61,9 +65,9 @@ public class App {
 	    System.out.println("The power of the User Id set is: " + Generator.getUuidsNumber(USER_ID_LENGTH));
 	    do {
 		String newId = Generator.getUuid(USER_ID_LENGTH);
-		user = users.getVal(newId);
-		if (user != null) {
-		    user = null;
+		userId = users.getVal(newId);
+		if (userId != null) {
+		    userId = null;
 		    continue;
 		} else {
 		    if (!users.addNewVal(newId)) {
@@ -71,13 +75,13 @@ public class App {
 			continue;
 		    }
 		    System.out.println("New user was successfully generated");
-		    user = users.getVal(newId);
+		    userId = users.getVal(newId);
 		}
-	    } while (user == null);
+	    } while (userId == null);
 	}
 
-	System.out.format("User ID: %s was added at %s hash: %X\n", user.getVal(),
-		user.getPrettyDate("dd/MM/yyyy HH:mm:ss"), user.hashCode());
+	System.out.format("User ID: %s was added at %s hash: %X\n", userId.getVal(),
+		userId.getPrettyDate("dd/MM/yyyy HH:mm:ss"), userId.hashCode());
 	
 	return true;
     }
@@ -88,6 +92,19 @@ public class App {
 	
 	if ((arguments.urlPath == null) || !longUrls.setFilePath(arguments.urlPath)) {
 	    if (!longUrls.setDefault()) {
+		System.out.println("Oops! errors in long urls list creatings");
+		return false;
+	    }
+	}
+	
+	return true;
+    }
+    
+    private static boolean loadShortUrl(String urlDefaultFile) {
+	shortUrls = new JsonSimpleDump(urlDefaultFile);
+	
+	if ((arguments.shortPath == null) || !shortUrls.setFilePath(arguments.shortPath)) {
+	    if (!shortUrls.setDefault()) {
 		System.out.println("Oops! errors in long urls list creatings");
 		return false;
 	    }
@@ -123,6 +140,50 @@ public class App {
 	
 	System.out.format("Long Url number: %d\n", longUrls.getValsNumber());
 	
+	if (!loadShortUrl("short.list"))
+	    return;
 	
+	System.out.format("Short Url number: %d\n", shortUrls.getValsNumber());
+	
+	User user = new User(userId.hashCode());
+	Action userAction;
+	ui = new ConsoleUI(userId.getVal());
+	
+	do {
+	    ui.drawMenu();
+	    userAction = ui.getInput();
+	    
+	    switch(userAction) {
+	    case SHOW_URL_LIST:
+		break;
+	    case ADD_NEW_URL:
+		String newUrl = ui.getURL();
+		if (newUrl != null) {
+		    longUrls.addNewVal(newUrl);
+		    StringWithDate url = longUrls.getVal(newUrl);
+		    if (!user.isLongUrlPresent(url.hashCode())) {
+			String newShortUrl = "";
+			do {
+			    newShortUrl = Generator.getUuid(10);
+			} while (!shortUrls.addNewVal(newShortUrl));
+			ShortUrl shortUrl = new ShortUrl(shortUrls.getVal(newShortUrl).hashCode(), 3);
+			user.addNewUrl(url.hashCode(), shortUrl);
+			System.out.println(user.getJsonStr());
+			//
+		    } else {
+			System.out.println("Такой URL уже присутствует и его короткая ссылка: ");
+		    }
+		}
+		break;
+	    case URL_OPEN:
+		break;
+	    case APP_EXIT:
+		System.out.println("Выход!");
+		break;
+	    case ERR_VAL:
+		System.out.println("Ошибка ввода! Попробуйте ещё раз.");
+		break;
+	    }
+	} while (userAction != Action.APP_EXIT);
     }
 }
