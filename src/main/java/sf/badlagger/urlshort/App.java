@@ -1,5 +1,10 @@
 package sf.badlagger.urlshort;
 
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import com.beust.jcommander.JCommander;
 
 import sf.badlagger.urlshort.ConsoleUI.Action;
@@ -7,6 +12,7 @@ import sf.badlagger.urlshort.ConsoleUI.Action;
 public class App {
 
 	static final int USER_ID_LENGTH = 15;
+	static final int SHORT_URL_LENGTH = 10;
 
 	static Args arguments = null;
 	static CfgDump cfg = null;
@@ -126,6 +132,15 @@ public class App {
 		
 		return true;
 	}
+	
+	public static String cleanShortUrl(String url) {
+		for (int i = url.length() - 1; i >= 0; i--) {
+			if (url.charAt(i) == '/') {
+				return url.substring(i + 1);
+			}
+		}
+		return null;
+	}
 
 	public static void main(String[] args) {
 		arguments = new Args();
@@ -191,7 +206,7 @@ public class App {
 					if (!user.isLongUrlPresent(url.hashCode())) {
 						String newShortUrl = "";
 						do {
-							newShortUrl = Generator.getUuid(10);
+							newShortUrl = Generator.getUuid(SHORT_URL_LENGTH);
 						} while (!shortUrls.addNewVal(newShortUrl));
 						ShortUrl shortUrl = new ShortUrl(shortUrls.getVal(newShortUrl).hashCode(), 3);
 						user.addNewUrl(url.hashCode(), shortUrl);
@@ -201,12 +216,44 @@ public class App {
 						else
 							db.updateVal(user);
 					} else {
+						
 						System.out.println("Такой URL уже присутствует и его короткая ссылка: ");
 					}
 				}
 				break;
 			case URL_OPEN:
-				
+				String openUrl = cleanShortUrl(ui.getURL());
+				System.out.println(openUrl);
+				if ((openUrl != null) && (openUrl.length() == SHORT_URL_LENGTH)) {
+					StringWithDate url = shortUrls.getVal(openUrl);
+					int lUrlHash = user.getLongUrl(url.hashCode());
+					if (lUrlHash != 0) {
+						ShortUrl sUrl = user.getShortUrl(lUrlHash);
+						if (sUrl.count > 0) {
+							StringWithDate lUrl = longUrls.getVal(lUrlHash);
+							if (lUrl != null) {
+								System.out.println(lUrl.getVal());
+								try {
+									Desktop.getDesktop().browse(new URI(lUrl.getVal()));
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} catch (URISyntaxException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							} else {
+								System.out.println("Длинная ссылка не найдена");
+							}
+						} else {
+							System.out.println("Количество переходов по ссылке исчерпано... Ссылка будет удалена!");
+						}
+					} else {
+						System.out.println("Эта ссылка не принадлежит этому пользователю!");
+					}
+				} else {
+					System.out.println("Это не короткая ссылка!");
+				}
 				break;
 			case APP_EXIT:
 				System.out.println("Выход!");

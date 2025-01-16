@@ -40,6 +40,16 @@ public class User {
 		return null;
 	}
 	
+	public int getLongUrl(int shortUrlHash) {
+		var keys = urlList.keySet();
+		for (var k : keys) {
+			if (urlList.get(k).equals(shortUrlHash)) {
+				return k.intValue();
+			}
+		}
+		return 0;
+	}
+	
 	public int[] getLongUrlsHashList() {
 		var keys = urlList.keySet();
 		int[] ret = new int[keys.size()];
