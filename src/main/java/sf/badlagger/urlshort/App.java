@@ -242,11 +242,20 @@ public class App {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
 								}
+								sUrl.count -= 1;
+								if (sUrl.count <= 0) {
+									System.out.println("Количество переходов по ссылке исчерпано... Ссылка будет удалена!");
+									user.removeUrl(lUrlHash);
+									shortUrls.removeVal(openUrl);
+								}
+								db.updateVal(user);
 							} else {
 								System.out.println("Длинная ссылка не найдена");
 							}
 						} else {
-							System.out.println("Количество переходов по ссылке исчерпано... Ссылка будет удалена!");
+							System.out.println("Количество переходов по ссылке исчерпано... Ссылка удалена!");
+							user.removeUrl(lUrlHash);
+							shortUrls.removeVal(openUrl);
 						}
 					} else {
 						System.out.println("Эта ссылка не принадлежит этому пользователю!");
