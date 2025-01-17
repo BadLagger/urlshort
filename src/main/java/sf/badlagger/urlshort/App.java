@@ -33,8 +33,8 @@ public class App {
 	    }
 	}
 
-	System.out.format("URL Prefix from config: %s\n", cfg.getPrefix());
-	System.out.format("URL LiveTime from config: %d\n", cfg.getLivetime());
+	System.out.format("Префикс для коротких ссылок из файла конфигурации: %s\n", cfg.getPrefix());
+	System.out.format("Время жизни коротких ссылок из конфиг файла: %d дня\n", cfg.getLivetime());
 	return true;
     }
 
@@ -58,18 +58,18 @@ public class App {
 	    userId = users.getVal(arguments.id);
 	    if (userId == null) {
 		if (users.addNewVal(arguments.id)) {
-		    System.out.println("New user was successfully added");
+		    System.out.println("Пользователь проинициализирвоан");
 		}
 
 		userId = users.getVal(arguments.id);
 		if (userId == null) {
-		    System.out.println("New user lost!!!");
+		    System.out.println("Ошибка добавления нового пользователя");
 		    return false;
 		}
 	    }
 	} else {
-	    System.out.println("Generate new User Id");
-	    System.out.println("The power of the User Id set is: " + Generator.getUuidsNumber(USER_ID_LENGTH));
+	    //System.out.println("Generate new User Id");
+	    //System.out.println("The power of the User Id set is: " + Generator.getUuidsNumber(USER_ID_LENGTH));
 	    do {
 		String newId = Generator.getUuid(USER_ID_LENGTH);
 		userId = users.getVal(newId);
@@ -78,16 +78,16 @@ public class App {
 		    continue;
 		} else {
 		    if (!users.addNewVal(newId)) {
-			System.out.format("User with id %s already exists! Re-generate\n", newId);
+			//System.out.format("User with id %s already exists! Re-generate\n", newId);
 			continue;
 		    }
-		    System.out.println("New user was successfully generated");
+		    System.out.println("Новый пользователь успешно создан");
 		    userId = users.getVal(newId);
 		}
 	    } while (userId == null);
 	}
 
-	System.out.format("User ID: %s was added at %s hash: %X\n", userId.getVal(),
+	System.out.format("UUID: %s добавлен %s хэш: %X\n", userId.getVal(),
 		userId.getPrettyDate("dd/MM/yyyy HH:mm:ss"), userId.hashCode());
 
 	return true;
@@ -158,7 +158,7 @@ public class App {
 	if (!loadUsers("users.list"))
 	    return;
 
-	System.out.format("Users number: %d\n", users.getValsNumber());
+	System.out.format("Общее количество пользователей: %d\n", users.getValsNumber());
 
 	if (!initUser())
 	    return;
@@ -166,12 +166,12 @@ public class App {
 	if (!loadLongUrl("url.list"))
 	    return;
 
-	System.out.format("Long Url number: %d\n", longUrls.getValsNumber());
+	System.out.format("Общее количество длинных ссылок: %d\n", longUrls.getValsNumber());
 
 	if (!loadShortUrl("short.list"))
 	    return;
 
-	System.out.format("Short Url number: %d\n", shortUrls.getValsNumber());
+	System.out.format("Общее количество коротких ссылок: %d\n", shortUrls.getValsNumber());
 
 	if (!loadDb("db.list"))
 	    return;
@@ -188,7 +188,7 @@ public class App {
 
 	    switch (userAction) {
 	    case SHOW_URL_LIST:
-		System.out.format("У пользователя: %d ссылок\n", user.size());
+		System.out.format("\nУ пользователя: %d ссылок\n\n", user.size());
 		for (var longUrlHash : user.getLongUrlsHashList()) {
 		    ShortUrl shortUrl = user.getShortUrl(longUrlHash);
 		    StringWithDate sUrl = shortUrls.getVal(shortUrl.urlHash);
@@ -217,7 +217,7 @@ public class App {
 
 			ShortUrl shortUrl = new ShortUrl(shortUrls.getVal(newShortUrl).hashCode(), limitURL);
 			user.addNewUrl(url.hashCode(), shortUrl);
-			System.out.println(user.getJsonStr());
+			//System.out.println(user.getJsonStr());
 			if (db.get(user.hashCode()) == null)
 			    db.addNewVal(user);
 			else
@@ -234,7 +234,7 @@ public class App {
 		    break;
 		}
 		String openUrl = cleanShortUrl(ui.getURL());
-		System.out.println(openUrl);
+		//System.out.println(openUrl);
 		if ((openUrl != null) && (openUrl.length() == SHORT_URL_LENGTH)) {
 		    StringWithDate url = shortUrls.getVal(openUrl);
 		    int lUrlHash = user.getLongUrl(url.hashCode());
@@ -250,7 +250,7 @@ public class App {
 			if (sUrl.count > 0) {
 			    StringWithDate lUrl = longUrls.getVal(lUrlHash);
 			    if (lUrl != null) {
-				System.out.println(lUrl.getVal());
+				//System.out.println(lUrl.getVal());
 				try {
 				    Desktop.getDesktop().browse(new URI(lUrl.getVal()));
 				} catch (IOException e) {

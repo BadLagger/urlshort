@@ -89,7 +89,7 @@ public class DbDump extends FileDump {
 	    JsonNode newNode = new ObjectMapper().readTree(json).get(user.getHashStr());
 	    ((ObjectNode) rootNode).set(user.getHashStr(), newNode);
 	    dataString = (new ObjectMapper()).writeValueAsString(rootNode);
-	    System.out.println(dataString);
+	    //System.out.println(dataString);
 	    return save();
 	} catch (JsonMappingException e) {
 	    e.printStackTrace();

@@ -123,7 +123,7 @@ public class JsonSimpleDump extends FileDump {
 				e.printStackTrace();
 				return false;
 			}
-			System.out.format("DataString: %s\n", dataString);
+			//System.out.format("DataString: %s\n", dataString);
 			return save();
 		}
 		
