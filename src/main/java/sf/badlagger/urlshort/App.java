@@ -218,13 +218,15 @@ public class App {
 			ShortUrl shortUrl = new ShortUrl(shortUrls.getVal(newShortUrl).hashCode(), limitURL);
 			user.addNewUrl(url.hashCode(), shortUrl);
 			//System.out.println(user.getJsonStr());
+			System.out.format("Короткая ссылка: %s/%s\n", cfg.getPrefix(), newShortUrl);
 			if (db.get(user.hashCode()) == null)
 			    db.addNewVal(user);
 			else
 			    db.updateVal(user);
 		    } else {
-
-			System.out.println("Такой URL уже присутствует и его короткая ссылка: ");
+			ShortUrl shortUrl = user.getShortUrl(url.hashCode());
+			StringWithDate sUrl = shortUrls.getVal(shortUrl.urlHash);
+			System.out.format("Такой URL уже присутствует и его короткая ссылка: %s/%s\n", cfg.getPrefix(), sUrl.getVal());
 		    }
 		}
 		break;
