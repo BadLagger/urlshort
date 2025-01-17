@@ -1,8 +1,6 @@
 package sf.badlagger.urlshort;
 
 import java.net.URI;
-import java.net.URL;
-import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class ConsoleUI {

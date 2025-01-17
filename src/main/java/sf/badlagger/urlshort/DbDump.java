@@ -1,9 +1,6 @@
 package sf.badlagger.urlshort;
 
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,130 +12,157 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class DbDump extends FileDump {
 
-	private JsonNode rootNode = null;
-	private Set<User> data = new HashSet<>();
+    private JsonNode rootNode = null;
+    private Set<User> data = new HashSet<>();
 
-	protected DbDump(String defaultName) {
-		super(defaultName);
-	}
+    protected DbDump(String defaultName) {
+	super(defaultName);
+    }
 
-	private boolean loadDataToJson() {
-		try {
-			rootNode = new ObjectMapper().readTree(dataString);
-			var keys = rootNode.fieldNames();
-			while (keys.hasNext()) {
-				String userHashStr = keys.next();
-				int userHash = Integer.parseInt(userHashStr);
-				User user = new User(userHash);
-				var value = rootNode.get(userHashStr);
-				if(value.isArray()) {
-					ArrayNode arrayNode = (ArrayNode) value;
-					for (int i = 0; i < arrayNode.size(); i++) {
-						var currentNode = arrayNode.get(i);
-						String longUrlHashStr = currentNode.fieldNames().next();
-						int longUrlHash = Integer.parseInt(longUrlHashStr);
-						var finalNode = currentNode.get(longUrlHashStr);
-						String shortUrlHashStr = finalNode.fieldNames().next();
-						int shortUrlHash = Integer.parseInt(shortUrlHashStr);
-						int count = finalNode.get(shortUrlHashStr).asInt();
-						ShortUrl shortUrl = new ShortUrl(shortUrlHash, count);
-						user.addNewUrl(longUrlHash, shortUrl);
-						data.add(user);
-					}
-				} else {
-					return false;
-				}
-			}
-			return true;
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
+    private boolean loadDataToJson() {
+	try {
+	    rootNode = new ObjectMapper().readTree(dataString);
+	    var keys = rootNode.fieldNames();
+	    while (keys.hasNext()) {
+		String userHashStr = keys.next();
+		int userHash = Integer.parseInt(userHashStr);
+		User user = new User(userHash);
+		var value = rootNode.get(userHashStr);
+		if (value.isArray()) {
+		    ArrayNode arrayNode = (ArrayNode) value;
+		    for (int i = 0; i < arrayNode.size(); i++) {
+			var currentNode = arrayNode.get(i);
+			String longUrlHashStr = currentNode.fieldNames().next();
+			int longUrlHash = Integer.parseInt(longUrlHashStr);
+			var finalNode = currentNode.get(longUrlHashStr);
+			String shortUrlHashStr = finalNode.fieldNames().next();
+			int shortUrlHash = Integer.parseInt(shortUrlHashStr);
+			int count = finalNode.get(shortUrlHashStr).asInt();
+			ShortUrl shortUrl = new ShortUrl(shortUrlHash, count);
+			user.addNewUrl(longUrlHash, shortUrl);
+			data.add(user);
+		    }
+		} else {
+		    return false;
 		}
-		return false;
+	    }
+	    return true;
+	} catch (JsonMappingException e) {
+	    e.printStackTrace();
+	} catch (JsonProcessingException e) {
+	    e.printStackTrace();
 	}
+	return false;
+    }
 
-	@Override
-	protected boolean checkData() {
-		if (dataString.length() > 0) {
-			return loadDataToJson();
-		}
-		return createDefaultData();
+    @Override
+    protected boolean checkData() {
+	if (dataString.length() > 0) {
+	    return loadDataToJson();
 	}
+	return createDefaultData();
+    }
 
-	@Override
-	protected boolean createDefaultData() {
-		dataString = "{}";
-		
+    @Override
+    protected boolean createDefaultData() {
+	dataString = "{}";
+	
+	if (loadDataToJson()) {
 		return save();
 	}
 
-	public boolean addNewVal(User user) {
+	return false;
+    }
 
-		if (rootNode == null)
-			return false;
+    public boolean addNewVal(User user) {
 
-		if(data.contains(user)) {
-			return false;
-		}
-		
-		data.add(user);
-		try {
-			String json = user.getJsonStr();
-			JsonNode newNode = new ObjectMapper().readTree(json).get(user.getHashStr());
-			((ObjectNode)rootNode).set(user.getHashStr(), newNode);
-			dataString =  (new ObjectMapper()).writeValueAsString(rootNode);
-			System.out.println(dataString);
-			return save();
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		}
-		
-		return false;
+	if (rootNode == null)
+	    return false;
+
+	if (data.contains(user)) {
+	    return false;
+	}
+
+	data.add(user);
+	try {
+	    String json = user.getJsonStr();
+	    JsonNode newNode = new ObjectMapper().readTree(json).get(user.getHashStr());
+	    ((ObjectNode) rootNode).set(user.getHashStr(), newNode);
+	    dataString = (new ObjectMapper()).writeValueAsString(rootNode);
+	    System.out.println(dataString);
+	    return save();
+	} catch (JsonMappingException e) {
+	    e.printStackTrace();
+	} catch (JsonProcessingException e) {
+	    e.printStackTrace();
+	}
+
+	return false;
+    }
+
+    public boolean updateVal(User user) {
+	if (rootNode == null)
+	    return false;
+
+	if (!data.contains(user)) {
+	    return false;
 	}
 	
-	public boolean updateVal(User user) {
-		if (rootNode == null)
-			return false;
+	if (user.size() == 0)
+	    return removeVal(user);
 
-		if(!data.contains(user)) {
-			return false;
-		}
-		
-		data.remove(user);
-		data.add(user);
-		
-		try {
-			String json = user.getJsonStr();
-			JsonNode newNode = new ObjectMapper().readTree(json).get(user.getHashStr());
-			((ObjectNode)rootNode).replace(user.getHashStr(), newNode);
-			dataString =  (new ObjectMapper()).writeValueAsString(rootNode);
-			System.out.println(dataString);
-			return save();
-		} catch (JsonMappingException e) {
-			e.printStackTrace();
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		}
-		
-		return false;
+	data.remove(user);
+	data.add(user);
+
+	try {
+	    String json = user.getJsonStr();
+	    JsonNode newNode = new ObjectMapper().readTree(json).get(user.getHashStr());
+	    ((ObjectNode) rootNode).replace(user.getHashStr(), newNode);
+	    dataString = (new ObjectMapper()).writeValueAsString(rootNode);
+	    //System.out.println(dataString);
+	    return save();
+	} catch (JsonMappingException e) {
+	    e.printStackTrace();
+	} catch (JsonProcessingException e) {
+	    e.printStackTrace();
+	}
+
+	return false;
+    }
+
+    public boolean removeVal(User user) {
+	if (rootNode == null)
+	    return false;
+
+	if (!data.contains(user)) {
+	    return false;
 	}
 	
-	public boolean removeVal(User user) {
-		// TODO
-		return false;
-	}
+	data.remove(user);
 	
-	public User get(int userHash) {
-		
-		for (User u : data) {
-			if (u.hashCode() == userHash)
-				return u;
-		}
-		
-		return null;
+	try {
+	    //String json = user.getJsonStr();
+	    //JsonNode newNode = new ObjectMapper().readTree(json).get(user.getHashStr());
+	    ((ObjectNode) rootNode).remove(user.getHashStr());
+	    dataString = (new ObjectMapper()).writeValueAsString(rootNode);
+	    return save();
+	} catch (JsonMappingException e) {
+	    e.printStackTrace();
+	} catch (JsonProcessingException e) {
+	    e.printStackTrace();
 	}
+
+	return false;
+    }
+
+    public User get(int userHash) {
+
+	for (User u : data) {
+	    if (u.hashCode() == userHash)
+		return u;
+	}
+
+	return null;
+    }
 
 }
