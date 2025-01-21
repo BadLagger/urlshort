@@ -25,6 +25,21 @@ public class StringWithDate {
 		return date;
 	}
 	
+	public boolean checkDate(int days) {
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+		Calendar bestBefore = (Calendar) date.clone();
+		Calendar now = Calendar.getInstance();
+		bestBefore.add(Calendar.DATE, days);
+		System.out.format("Ссылка годна до: %s\n", simpleDateFormat.format(bestBefore.getTime()));
+		System.out.format("Сейчас: %s\n", simpleDateFormat.format(now.getTime()));
+		int result = bestBefore.compareTo(now);
+		System.out.format("Результат сравнения: %d\n", result);
+		if (result > 0) {
+			return true;
+		}
+		return false;
+	}
+	
 	public String getPrettyDate(String format) {
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
 		return simpleDateFormat.format(date.getTime());

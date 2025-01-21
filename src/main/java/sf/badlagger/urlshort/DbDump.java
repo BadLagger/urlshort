@@ -126,6 +126,11 @@ public class DbDump extends FileDump {
 		return false;
 	}
 	
+	public boolean removeVal(User user) {
+		// TODO
+		return false;
+	}
+	
 	public User get(int userHash) {
 		
 		for (User u : data) {

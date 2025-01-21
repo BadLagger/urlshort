@@ -228,6 +228,13 @@ public class App {
 					StringWithDate url = shortUrls.getVal(openUrl);
 					int lUrlHash = user.getLongUrl(url.hashCode());
 					if (lUrlHash != 0) {
+						if (!url.checkDate(cfg.getLivetime())) {
+							System.out.println("Ссылка протухла!");
+							user.removeUrl(lUrlHash);
+							shortUrls.removeVal(openUrl);
+							db.updateVal(user);
+							break;
+						}
 						ShortUrl sUrl = user.getShortUrl(lUrlHash);
 						if (sUrl.count > 0) {
 							StringWithDate lUrl = longUrls.getVal(lUrlHash);
@@ -256,6 +263,7 @@ public class App {
 							System.out.println("Количество переходов по ссылке исчерпано... Ссылка удалена!");
 							user.removeUrl(lUrlHash);
 							shortUrls.removeVal(openUrl);
+							db.updateVal(user);
 						}
 					} else {
 						System.out.println("Эта ссылка не принадлежит этому пользователю!");
